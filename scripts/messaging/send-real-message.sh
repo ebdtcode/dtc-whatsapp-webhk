@@ -4,7 +4,7 @@
 # Usage: ./send-real-message.sh <recipient_number>
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 RECIPIENT=${1:-"27823456789"}  # Replace with actual number
 ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"

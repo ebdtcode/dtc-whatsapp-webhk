@@ -8,7 +8,7 @@
 
 **Query Parameters:**
 - `hub.mode`: `subscribe`
-- `hub.verify_token`: `AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw`
+- `hub.verify_token`: `YOUR_WEBHOOK_VERIFY_TOKEN`
 - `hub.challenge`: `test123`
 
 **Expected Response:** `test123` (plain text)
@@ -109,7 +109,7 @@ Instead of Postman, you can use the provided test scripts:
 
 ```bash
 # Test GET (verification)
-curl "https://dtc-webhook.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw&hub.challenge=test123"
+curl "https://dtc-webhook.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=YOUR_WEBHOOK_VERIFY_TOKEN&hub.challenge=test123"
 
 # Test POST (message)
 cd dtc-webhook

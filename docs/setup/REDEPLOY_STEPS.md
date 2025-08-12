@@ -30,7 +30,7 @@ netlify deploy --prod
 
 Test the webhook again:
 ```bash
-./test-production-webhook.sh
+./scripts/testing/test-production-webhook.sh
 ```
 
 Should return:
@@ -45,7 +45,7 @@ Once the test passes:
 2. WhatsApp > Configuration > Webhook
 3. Enter:
    - **Callback URL**: `https://dtc-webhook.netlify.app/webhook`
-   - **Verify Token**: `AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw`
+   - **Verify Token**: `YOUR_WEBHOOK_VERIFY_TOKEN`
 4. Click "Verify and Save"
 
 ## Important Notes

@@ -9,13 +9,13 @@
 
 ### 1. Test Webhook Verification
 ```bash
-./test-production-webhook.sh
+./scripts/testing/test-production-webhook.sh
 ```
 Expected: "✅ Webhook verification WORKING!"
 
 ### 2. Test System User Token
 ```bash
-./test-system-token.sh
+./scripts/testing/test-system-token.sh
 ```
 Expected: Token valid with WhatsApp permissions
 
@@ -51,8 +51,8 @@ PHONE_NUMBER_ID=YOUR_ACTUAL_PHONE_NUMBER_ID_HERE
 4. Update:
    - `PHONE_NUMBER_ID` = Your actual Phone Number ID
    - `SYSTEM_USER_ACCESS_TOKEN` = Your current token
-   - `WEBHOOK_VERIFY_TOKEN` = AkqMBZAI4JZCg9mAHwBBxKL9J8G8
-   - `APP_SECRET` = de83282e3cc8d6095d25792422fe04cf
+   - `WEBHOOK_VERIFY_TOKEN` = YOUR_WEBHOOK_VERIFY_TOKEN
+   - `APP_SECRET` = YOUR_APP_SECRET
 
 ## Testing Message Flow
 

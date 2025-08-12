@@ -4,7 +4,7 @@
 
 Use the test script:
 ```bash
-./test-image-message.sh
+./scripts/testing/test-image-message.sh
 ```
 
 Or use the dashboard:
@@ -91,10 +91,10 @@ curl -X POST "https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages" \
 ### Step 1: Verify Setup
 ```bash
 # Test your token
-./test-system-token.sh
+./scripts/testing/test-system-token.sh
 
 # Test webhook
-./test-production-webhook.sh
+./scripts/testing/test-production-webhook.sh
 ```
 
 ### Step 2: Open Conversation
@@ -117,7 +117,7 @@ curl -X POST "https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages" \
 ### Step 3: Send Image
 After recipient replies:
 ```bash
-./test-image-message.sh
+./scripts/testing/test-image-message.sh
 ```
 
 ## Dashboard Usage

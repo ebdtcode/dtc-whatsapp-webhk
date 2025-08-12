@@ -3,7 +3,7 @@
 # WhatsApp API Complete Test Suite
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 # Use environment variables with defaults
 PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"

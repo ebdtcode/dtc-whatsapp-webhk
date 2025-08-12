@@ -16,7 +16,7 @@ Verify the webhook is properly configured and responding
 
 ### Test Command
 ```bash
-curl "https://dtc-webhook.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw&hub.challenge=test123"
+curl "https://dtc-webhook.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=YOUR_WEBHOOK_VERIFY_TOKEN&hub.challenge=test123"
 ```
 
 ### Expected Response
@@ -170,7 +170,7 @@ PHONE_NUMBER_ID="YOUR_PHONE_NUMBER_ID"
 ACCESS_TOKEN="YOUR_ACCESS_TOKEN"
 TEST_PHONE="27823456789"  # Your test phone number
 WEBHOOK_URL="https://dtc-webhook.netlify.app/webhook"
-VERIFY_TOKEN="AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw"
+VERIFY_TOKEN="YOUR_WEBHOOK_VERIFY_TOKEN"
 
 echo "🧪 Testing WhatsApp API Setup"
 echo "=============================="

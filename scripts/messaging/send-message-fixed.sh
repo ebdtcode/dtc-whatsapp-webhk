@@ -4,7 +4,7 @@
 # The error "messaging_product is required" usually means the JSON isn't being sent
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 # Use environment variables
 PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"

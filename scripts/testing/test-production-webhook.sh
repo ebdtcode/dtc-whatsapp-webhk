@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 # Test the production webhook verification
 WEBHOOK_URL="https://dtc-webhook.netlify.app/webhook"

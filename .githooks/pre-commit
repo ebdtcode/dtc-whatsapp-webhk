@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Git pre-commit hook - Prevents committing sensitive data
+# Install: cp .githooks/pre-commit .git/hooks/pre-commit
+
+# Run security check script
+if [ -f "scripts/utilities/check-secrets.sh" ]; then
+    ./scripts/utilities/check-secrets.sh
+    EXIT_CODE=$?
+    
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo ""
+        echo "🛑 Commit blocked due to security concerns."
+        echo "Fix the issues above and try again."
+        echo ""
+        echo "To bypass (NOT RECOMMENDED):"
+        echo "  git commit --no-verify"
+        exit $EXIT_CODE
+    fi
+else
+    echo "⚠️  Warning: Security check script not found"
+    echo "  Expected at: scripts/utilities/check-secrets.sh"
+fi
+
+exit 0

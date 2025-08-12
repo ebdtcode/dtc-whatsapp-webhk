@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: DTC WhatsApp Webhook API
+  description: WhatsApp Cloud API webhook for receiving and responding to WhatsApp messages
+  version: 1.0.0
+  contact:
+    name: DTC DevOps Team
+    email: devops@dtc.com
+
+servers:
+  - url: https://dtc-webhook.netlify.app
+    description: Production server
+  - url: http://localhost:8888
+    description: Local development server
+
+paths:
+  /webhook:
+    get:
+      summary: Webhook Verification
+      description: Verify webhook endpoint for WhatsApp Cloud API
+      operationId: verifyWebhook
+      tags:
+        - Webhook
+      parameters:
+        - name: hub.mode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [subscribe]
+          description: Verification mode
+        - name: hub.verify_token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Verification token configured in environment
+        - name: hub.challenge
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Challenge string to echo back
+      responses:
+        '200':
+          description: Webhook verified successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "test-challenge-123"
+        '400':
+          description: Missing required parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Bad Request - Missing parameters"
+        '403':
+          description: Invalid verification token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Forbidden - Token mismatch"
+
+    post:
+      summary: Receive WhatsApp Events
+      description: Receive messages and status updates from WhatsApp
+      operationId: receiveWebhook
+      tags:
+        - Webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhatsAppWebhookPayload'
+      responses:
+        '200':
+          description: Event received successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "EVENT_RECEIVED"
+        '400':
+          description: Invalid request body
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Bad Request - Invalid JSON"
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Internal Server Error"
+
+  /.netlify/functions/get-config:
+    get:
+      summary: Get Configuration
+      description: Retrieve current webhook configuration (for dashboard)
+      operationId: getConfig
+      tags:
+        - Configuration
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "*"
+
+  /.netlify/functions/diagnostic:
+    get:
+      summary: Run Diagnostics
+      description: Run diagnostic checks on the webhook system
+      operationId: runDiagnostics
+      tags:
+        - Diagnostics
+      responses:
+        '200':
+          description: Diagnostics completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticResponse'
+
+components:
+  schemas:
+    WhatsAppWebhookPayload:
+      type: object
+      required:
+        - object
+        - entry
+      properties:
+        object:
+          type: string
+          enum: [whatsapp_business_account]
+        entry:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Business account ID
+              changes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                      enum: [messages]
+                    value:
+                      type: object
+                      properties:
+                        messaging_product:
+                          type: string
+                          enum: [whatsapp]
+                        metadata:
+                          $ref: '#/components/schemas/MessageMetadata'
+                        messages:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/WhatsAppMessage'
+                        statuses:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/MessageStatus'
+
+    MessageMetadata:
+      type: object
+      properties:
+        display_phone_number:
+          type: string
+          description: Display phone number
+        phone_number_id:
+          type: string
+          description: Phone number ID
+
+    WhatsAppMessage:
+      type: object
+      required:
+        - from
+        - id
+        - timestamp
+        - type
+      properties:
+        from:
+          type: string
+          description: Sender's WhatsApp number
+        id:
+          type: string
+          description: Message ID
+        timestamp:
+          type: string
+          description: Unix timestamp
+        type:
+          type: string
+          enum: [text, image, document, audio, video, location, contacts, interactive]
+        text:
+          type: object
+          properties:
+            body:
+              type: string
+              description: Text message content
+        image:
+          type: object
+          properties:
+            caption:
+              type: string
+            mime_type:
+              type: string
+            sha256:
+              type: string
+            id:
+              type: string
+
+    MessageStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Message ID
+        status:
+          type: string
+          enum: [sent, delivered, read, failed]
+        timestamp:
+          type: string
+          description: Unix timestamp
+        recipient_id:
+          type: string
+          description: Recipient's WhatsApp number
+
+    ConfigResponse:
+      type: object
+      properties:
+        phoneNumberId:
+          type: string
+          description: WhatsApp phone number ID
+        accessToken:
+          type: string
+          description: System user access token (masked)
+        webhookVerifyToken:
+          type: string
+          description: Webhook verification token (masked)
+        appSecret:
+          type: string
+          description: Facebook app secret (masked)
+        appId:
+          type: string
+          description: Facebook app ID
+        hasToken:
+          type: boolean
+          description: Whether access token is configured
+        tokenType:
+          type: string
+          enum: [system_user, user]
+        webhookUrl:
+          type: string
+          format: uri
+          description: Full webhook URL
+        apiVersion:
+          type: string
+          description: WhatsApp API version
+        environment:
+          type: string
+          enum: [production, development]
+        configured:
+          type: boolean
+          description: Whether all required config is present
+        missingVars:
+          type: array
+          items:
+            type: string
+          description: List of missing environment variables
+
+    DiagnosticResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        checks:
+          type: object
+          properties:
+            webhook:
+              $ref: '#/components/schemas/HealthCheck'
+            token:
+              $ref: '#/components/schemas/HealthCheck'
+            api:
+              $ref: '#/components/schemas/HealthCheck'
+        timestamp:
+          type: string
+          format: date-time
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pass, fail]
+        message:
+          type: string
+        details:
+          type: object
+
+  securitySchemes:
+    WebhookSignature:
+      type: apiKey
+      in: header
+      name: X-Hub-Signature-256
+      description: HMAC SHA256 signature of request body
+
+tags:
+  - name: Webhook
+    description: WhatsApp webhook endpoints
+  - name: Configuration
+    description: Configuration management
+  - name: Diagnostics
+    description: System diagnostics

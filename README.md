@@ -2,16 +2,43 @@
 
 WhatsApp Cloud API webhook for receiving and responding to WhatsApp messages, deployed on Netlify.
 
-## Quick Start
+## 📚 Documentation
 
-### 1. Prerequisites
+### Setup & Configuration
+- [Initial Setup Guide](docs/setup/WEBHOOK_SETUP.md)
+- [Get Phone Number ID](docs/setup/GET_PHONE_NUMBER_ID.md)
+- [System User Token Setup](docs/setup/SYSTEM_USER_SETUP.md)
+- [Get Permanent Token](docs/setup/GET_PERMANENT_TOKEN.md)
+- [Redeploy Steps](docs/setup/REDEPLOY_STEPS.md)
 
+### Usage Guides
+- [Testing Guide](docs/guides/TESTING_GUIDE.md)
+- [WhatsApp Message Flow](docs/guides/WHATSAPP_MESSAGE_FLOW.md)
+- [Image Message Guide](docs/guides/IMAGE_MESSAGE_GUIDE.md)
+- [Media Messages Guide](docs/guides/MEDIA_MESSAGES_GUIDE.md)
+- [Real Message Guide](docs/guides/REAL_MESSAGE_GUIDE.md)
+- [Complete Test Setup](docs/guides/TEST_COMPLETE_SETUP.md)
+
+### API Documentation
+- [Postman Setup](docs/api/POSTMAN_SETUP.md)
+- [Send Message via Postman](docs/api/SEND_MESSAGE_POSTMAN.md)
+- [OpenAPI Specification](docs/api/openapi.yaml) *(coming soon)*
+
+### Troubleshooting
+- [Message Troubleshooting](docs/troubleshooting/TROUBLESHOOT_MESSAGE.md)
+
+### Architecture
+- [Compliance Report](docs/architecture/CLAUDE_COMPLIANCE_REPORT.md)
+- [Architecture Decisions](docs/architecture/ADR-001-typescript-choice.md)
+
+## 🚀 Quick Start
+
+### Prerequisites
 - Node.js 18+
 - Netlify account
 - Facebook Developer account with WhatsApp Business API access
 
-### 2. Setup
-
+### Setup
 ```bash
 # Clone and enter directory
 cd dtc-webhook
@@ -24,57 +51,33 @@ cp .env.example .env
 # Edit .env with your actual values
 ```
 
-### 3. Environment Variables
-
+### Environment Variables
 Get these from Facebook Developer Console:
-
 - `WEBHOOK_VERIFY_TOKEN`: Create a secure random token
 - `APP_SECRET`: Facebook App Secret (Settings > Basic)
 - `PHONE_NUMBER_ID`: WhatsApp phone number ID
-- `ACCESS_TOKEN`: Permanent access token for WhatsApp API
+- `SYSTEM_USER_ACCESS_TOKEN`: System User token for WhatsApp API
 
-### 4. Local Development
-
+### Local Development
 ```bash
 # Run locally with Netlify Dev
 npm run dev
 
+# Run tests
+npm test
+
 # Webhook available at: http://localhost:8888/webhook
 ```
 
-### 5. Deploy to Netlify
-
-#### Option A: CLI Deployment
-
+### Deploy to Netlify
 ```bash
-# Login to Netlify
-npx netlify login
-
-# Initialize site
-npx netlify init
-
 # Deploy to production
 npm run deploy
 ```
 
-#### Option B: Git Deployment
+Or connect to GitHub for automatic deployments.
 
-1. Push to GitHub/GitLab/Bitbucket
-2. Import project on [Netlify](https://app.netlify.com)
-3. Add environment variables in site settings
-4. Deploy automatically on push
-
-### 6. Configure WhatsApp Webhook
-
-1. Get your Netlify URL: `https://your-site.netlify.app/webhook`
-2. In Facebook Developer Console:
-   - Go to WhatsApp > Configuration > Webhook
-   - Callback URL: Your Netlify URL
-   - Verify Token: Your `WEBHOOK_VERIFY_TOKEN`
-   - Subscribe to: messages, message_deliveries, message_reads
-3. Click "Verify and Save"
-
-## Features
+## 🎯 Features
 
 - ✅ Webhook verification
 - ✅ Message receiving (text, image, document, audio, video, location)
@@ -82,57 +85,96 @@ npm run deploy
 - ✅ Signature verification for security
 - ✅ Status updates tracking
 - ✅ TypeScript support
+- ✅ Test dashboard at `/test-dashboard.html`
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 dtc-webhook/
+├── config/                # Configuration files
+│   ├── jest.config.js    # Jest testing config
+│   ├── .eslintrc.js      # ESLint rules
+│   ├── .prettierrc       # Prettier formatting
+│   └── tsconfig.json     # TypeScript config
+├── docs/                  # All documentation
+│   ├── setup/            # Setup guides
+│   ├── guides/           # Usage guides
+│   ├── api/              # API documentation
+│   ├── troubleshooting/  # Troubleshooting guides
+│   └── architecture/     # Architecture decisions
 ├── netlify/
-│   └── functions/
-│       └── webhook.ts      # Main webhook handler
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore rules
-├── netlify.toml            # Netlify configuration
-├── package.json            # Dependencies
-├── tsconfig.json           # TypeScript config
-└── README.md               # This file
+│   └── functions/        # Serverless functions
+│       ├── webhook.ts    # Main webhook handler
+│       ├── get-config.ts # Config endpoint
+│       └── diagnostic.ts # Diagnostic endpoint
+├── public/               # Static files
+│   ├── index.html       # Landing page
+│   └── test-dashboard.html # Testing interface
+├── scripts/              # Executable scripts
+│   ├── testing/         # Test scripts
+│   ├── messaging/       # Message sending scripts
+│   └── utilities/       # Helper scripts
+├── test-data/           # Test JSON payloads
+│   ├── send-*.json     # Message payloads
+│   └── test-*.json     # Test data
+├── tests/               # Unit tests
+│   ├── webhook.test.ts # Webhook tests
+│   └── get-config.test.ts # Config tests
+├── .env.example        # Environment template
+├── .gitignore          # Git ignore rules
+├── netlify.toml        # Netlify configuration
+├── package.json        # Dependencies
+└── README.md           # This file
 ```
 
-## Testing
+## 🧪 Testing
 
-### Test Webhook Verification
-
+### Run Tests
 ```bash
-curl "https://your-site.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=YOUR_TOKEN&hub.challenge=test"
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run in watch mode
+npm run test:watch
 ```
 
-### Send Test Message
+### Test Dashboard
+Access the test dashboard at:
+```
+https://your-site.netlify.app/test-dashboard.html
+```
 
-Send any WhatsApp message to your business number and check Netlify Functions logs.
+### Manual Testing
+```bash
+# Test webhook verification
+./scripts/testing/test-production-webhook.sh
 
-## Monitoring
+# Test system token
+./scripts/testing/test-system-token.sh
+
+# Test image sending
+./scripts/testing/test-image-message.sh
+```
+
+## 📊 Monitoring
 
 View logs in Netlify dashboard:
 1. Go to Functions tab
-2. Select "webhook" function
+2. Select function (webhook, get-config, etc.)
 3. View real-time logs
 
-## Customization
+## 🔒 Security
 
-Edit `netlify/functions/webhook.ts` to customize:
+- Webhook signature verification
+- Environment-based configuration
+- HTTPS enforced (automatic with Netlify)
+- System User tokens for long-term access
+- Rate limiting on API calls
 
-- `handleMessage()`: Process incoming messages
-- `sendWhatsAppMessage()`: Send replies
-- Add new message types or business logic
-
-## Security
-
-- Always verify webhook signatures
-- Keep environment variables secret
-- Use HTTPS (automatic with Netlify)
-- Rotate access tokens regularly
-
-## Limits
+## 📈 Limits
 
 ### Netlify Free Tier
 - 125,000 function invocations/month
@@ -140,14 +182,35 @@ Edit `netlify/functions/webhook.ts` to customize:
 - 10 second timeout
 
 ### WhatsApp API
-- Rate limits apply
+- Rate limits apply per phone number
+- 24-hour messaging window rules
 - Check Facebook documentation for current limits
 
-## Support
+## 🛠 Development
+
+### Commands
+```bash
+npm run dev        # Start local development
+npm run build      # Build for production
+npm run test       # Run tests
+npm run lint       # Lint code
+npm run format     # Format code
+npm run deploy     # Deploy to Netlify
+```
+
+### Contributing
+1. Create feature branch
+2. Add tests for new features
+3. Ensure all tests pass
+4. Update documentation
+5. Submit pull request
+
+## 📞 Support
 
 - [WhatsApp Cloud API Docs](https://developers.facebook.com/docs/whatsapp/cloud-api)
 - [Netlify Functions Docs](https://docs.netlify.com/functions/overview/)
+- Internal: Contact DTC DevOps team
 
-## License
+## 📄 License
 
-Private - DTC Internal Use Only# dtc-whatsapp-webhk
+Private - DTC Internal Use Only

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 # Use environment variables
 PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"

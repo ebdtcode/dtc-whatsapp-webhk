@@ -3,7 +3,7 @@
 # Send WhatsApp messages with images and other media
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 # Use environment variables
 PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"

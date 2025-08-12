@@ -238,6 +238,7 @@
                 </div>
                 <button onclick="testConfiguration()">Run Configuration Test</button>
                 <button onclick="clearCache()" style="background: #ff5722; margin-left: 10px;">Clear Cache</button>
+                <button onclick="forceReloadConfig()" style="background: #2196F3; margin-left: 10px;">Reload from Netlify</button>
                 <div id="configResults" class="status"></div>
                 <div id="configTests" class="test-results"></div>
             </div>
@@ -344,12 +345,9 @@
             if (saved) {
                 try {
                     const config = JSON.parse(saved);
-                    // Check if the token starts with the old expired token pattern
-                    if (config.accessToken && config.accessToken.startsWith('EAAL3XBJiLL8')) {
-                        console.log('Clearing expired token from cache');
-                        config.accessToken = '';
-                        localStorage.setItem('whatsappConfig', JSON.stringify(config));
-                    }
+                    // Don't check token prefix - validate with API instead
+                    // Tokens can share prefixes but have different validity
+                    console.log('Token cache check performed');
                 } catch (e) {
                     console.error('Error checking cached token:', e);
                 }
@@ -358,14 +356,85 @@
         
         // Clear all cached configuration
         function clearCache() {
-            if (confirm('Clear all cached configuration? You will need to re-enter your credentials.')) {
-                localStorage.removeItem('whatsappConfig');
-                localStorage.removeItem('adminSecret');
+            if (confirm('Clear all cached configuration and reload from Netlify?')) {
+                // Clear all localStorage items
+                localStorage.clear();
+                
+                // Clear session storage too
+                sessionStorage.clear();
+                
+                // Clear form fields
                 document.getElementById('phoneNumberId').value = '';
                 document.getElementById('accessToken').value = '';
                 document.getElementById('recipient').value = '';
-                alert('Cache cleared. Refreshing page...');
-                location.reload();
+                
+                // Force clear any cached API responses
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => {
+                            caches.delete(name);
+                        });
+                    });
+                }
+                
+                alert('Cache cleared. Reloading fresh data from Netlify...');
+                
+                // Hard reload to bypass browser cache
+                location.reload(true);
+            }
+        }
+        
+        // Force reload configuration from Netlify without clearing cache
+        async function forceReloadConfig() {
+            const status = document.getElementById('configStatus');
+            status.textContent = 'Reloading from Netlify...';
+            status.style.color = '#2196F3';
+            
+            try {
+                // Force fresh fetch from backend
+                const response = await fetch(`/.netlify/functions/get-config?t=${Date.now()}&force=true`, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                const config = await response.json();
+                
+                // Update form fields with fresh data
+                if (config.phoneNumberId) {
+                    document.getElementById('phoneNumberId').value = config.phoneNumberId;
+                }
+                
+                if (config.accessToken) {
+                    document.getElementById('accessToken').value = config.accessToken;
+                }
+                
+                if (config.webhookVerifyToken) {
+                    document.getElementById('verifyToken').value = config.webhookVerifyToken;
+                }
+                
+                // Update status display
+                if (config.configured) {
+                    status.textContent = '✅ Fresh data loaded from Netlify';
+                    status.style.color = '#4caf50';
+                } else if (config.missingVars && config.missingVars.length > 0) {
+                    status.textContent = `⚠️ Loaded but missing: ${config.missingVars.join(', ')}`;
+                    status.style.color = '#ff9800';
+                } else {
+                    status.textContent = '✅ Configuration reloaded from Netlify';
+                    status.style.color = '#4caf50';
+                }
+                
+                // Run a test to validate the new token
+                setTimeout(() => testConfiguration(), 1000);
+                
+            } catch (error) {
+                console.error('Error reloading config:', error);
+                status.textContent = '❌ Failed to reload from Netlify';
+                status.style.color = '#f44336';
             }
         }
         
@@ -373,7 +442,14 @@
         async function loadBackendConfig() {
             try {
                 // Get ALL config from backend including tokens
-                const response = await fetch('/.netlify/functions/get-config');
+                // Add cache-busting parameter to force fresh data
+                const response = await fetch(`/.netlify/functions/get-config?t=${Date.now()}`, {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 const config = await response.json();
                 
                 console.log('Loaded config from backend:', {
@@ -511,10 +587,8 @@
                 return { success: false, message: 'Access token not provided. Add token in Netlify or enter below.' };
             }
             
-            // Check if this is the old expired token
-            if (token.startsWith('EAAL3XBJiLL8')) {
-                return { success: false, message: 'This is the OLD EXPIRED token! Clear cache and use new System User token.' };
-            }
+            // Don't check token prefix - validate with actual API call
+            // Tokens can share prefixes (EAAL...) but have different validity
             
             try {
                 const response = await fetch(`${API_BASE}/debug_token?input_token=${token}&access_token=${token}`);
@@ -523,16 +597,37 @@
                 if (data.error) {
                     // Parse the specific error
                     if (data.error.message && data.error.message.includes('Session has expired')) {
-                        return { success: false, message: `Token expired: ${data.error.message}` };
+                        return { success: false, message: `Token expired: ${data.error.message}. Clear cache and update System User token in Netlify.` };
+                    }
+                    if (data.error.message && data.error.message.includes('Error validating access token')) {
+                        return { success: false, message: `Invalid token. Please generate a new System User token and update in Netlify.` };
                     }
                     return { success: false, message: `Token error: ${data.error.message || 'Unknown error'}` };
                 }
                 
+                // Check if token is valid and get details
+                if (data.data && data.data.is_valid) {
+                    const tokenType = data.data.type || 'Unknown';
+                    const expiresAt = data.data.expires_at;
+                    let expiryInfo = '';
+                    
+                    if (expiresAt && expiresAt > 0) {
+                        const expiryDate = new Date(expiresAt * 1000);
+                        const daysUntilExpiry = Math.floor((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+                        expiryInfo = ` - Expires in ${daysUntilExpiry} days`;
+                    } else if (expiresAt === 0) {
+                        expiryInfo = ' - Never expires';
+                    }
+                    
+                    return {
+                        success: true,
+                        message: `Token valid (Type: ${tokenType}${expiryInfo})`
+                    };
+                }
+                
                 return {
-                    success: data.data && data.data.is_valid,
-                    message: data.data?.is_valid ? 
-                        `Token valid (Type: ${data.data.type || 'Unknown'})` : 
-                        'Token is invalid'
+                    success: false,
+                    message: 'Token is invalid. Generate new System User token.'
                 };
             } catch (error) {
                 return { success: false, message: `API error: ${error.message}` };

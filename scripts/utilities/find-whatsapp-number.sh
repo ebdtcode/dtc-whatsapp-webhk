@@ -3,7 +3,7 @@
 # Script to find your WhatsApp Business Account ID and Phone Numbers
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
 

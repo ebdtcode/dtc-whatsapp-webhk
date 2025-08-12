@@ -3,7 +3,7 @@
 # Test sending image message with caption
 
 # Load environment variables
-source ./load-env.sh
+source ../utilities/load-env.sh
 
 echo "Testing WhatsApp Image Message..."
 echo "================================="

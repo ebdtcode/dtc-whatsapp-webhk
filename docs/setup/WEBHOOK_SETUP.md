@@ -5,10 +5,10 @@
 Make sure these are set in Netlify Dashboard > Site Settings > Environment Variables:
 
 ```
-WEBHOOK_VERIFY_TOKEN=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw
-APP_SECRET=de83282e3cc8d6095d25792422fe04cf
+WEBHOOK_VERIFY_TOKEN=YOUR_WEBHOOK_VERIFY_TOKEN
+APP_SECRET=YOUR_APP_SECRET
 PHONE_NUMBER_ID=12405166565
-ACCESS_TOKEN=EAAL3XBJiLL8BPLVcvdZAZCoi2UQZAkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3Vxth74zfttWDp0V14ybRSfsQVLCnCDHTAZBKTbVnXVOM8gCpCGSEjVfdhhl59IbZCN1XVtP53c4TDfABwCGRE8Y5QzttqBX3HfFB5ZCBICNi9LnuRQAdGZCGTC665khF1d06xyfSPofKlFnYOZC9vHilOj5cuXIBdEEtZBfQc2ZAscRPKXJ5dMEIZD
+ACCESS_TOKEN=EAAL3XBJiLL8BPLVcvdZAZCoi2UQZYOUR_WEBHOOK_VERIFY_TOKENL0H7S3OL3pK8ha3Vxth74zfttWDp0V14ybRSfsQVLCnCDHTAZBKTbVnXVOM8gCpCGSEjVfdhhl59IbZCN1XVtP53c4TDfABwCGRE8Y5QzttqBX3HfFB5ZCBICNi9LnuRQAdGZCGTC665khF1d06xyfSPofKlFnYOZC9vHilOj5cuXIBdEEtZBfQc2ZAscRPKXJ5dMEIZD
 ```
 
 ## 2. Redeploy After Adding Environment Variables
@@ -26,13 +26,13 @@ npm install
 npm run dev
 
 # In another terminal:
-./test-webhook.sh AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw
+./test-webhook.sh YOUR_WEBHOOK_VERIFY_TOKEN
 ```
 
 ## 4. Test Production Webhook
 
 ```bash
-curl "https://your-site.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw&hub.challenge=test123"
+curl "https://your-site.netlify.app/webhook?hub.mode=subscribe&hub.verify_token=YOUR_WEBHOOK_VERIFY_TOKEN&hub.challenge=test123"
 ```
 
 Should return: `test123`
@@ -45,7 +45,7 @@ In Facebook Developer Console:
 2. Click "Edit" on Webhook
 3. Enter:
    - **Callback URL**: `https://your-site.netlify.app/webhook`
-   - **Verify Token**: `AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw`
+   - **Verify Token**: `YOUR_WEBHOOK_VERIFY_TOKEN`
 4. Click "Verify and Save"
 
 ## 6. Check Netlify Function Logs
