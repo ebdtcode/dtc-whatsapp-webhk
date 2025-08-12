@@ -1,0 +1,21 @@
+{
+  "name": "dtc-webhook",
+  "version": "1.0.0",
+  "description": "DTC WhatsApp Cloud API Webhook for Netlify",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "tsc",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "netlify-cli": "^17.10.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
