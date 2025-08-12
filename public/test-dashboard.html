@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp API Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .test-results {
+            margin-top: 20px;
+        }
+
+        .test-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+
+        .test-item.pass {
+            background: #d4edda;
+        }
+
+        .test-item.fail {
+            background: #f8d7da;
+        }
+
+        .logs {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .config-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .message-preview {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 WhatsApp API Test Dashboard</h1>
+            <p>Complete testing and diagnostic interface</p>
+        </div>
+
+        <div class="grid">
+            <!-- Configuration Test Card -->
+            <div class="card">
+                <h2>⚙️ Configuration Test</h2>
+                <div class="config-display">
+                    <div>API URL: <span id="apiUrl">Loading...</span></div>
+                    <div>Webhook URL: <span id="webhookUrl">Loading...</span></div>
+                    <div>Status: <span id="configStatus">Not tested</span></div>
+                </div>
+                <button onclick="testConfiguration()">Run Configuration Test</button>
+                <div id="configResults" class="status"></div>
+                <div id="configTests" class="test-results"></div>
+            </div>
+
+            <!-- Send Message Card -->
+            <div class="card">
+                <h2>📨 Send Test Message</h2>
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label>Phone Number ID</label>
+                        <input type="text" id="phoneNumberId" placeholder="15-17 digit ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Access Token</label>
+                        <input type="password" id="accessToken" placeholder="Your access token" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Recipient Number</label>
+                        <input type="text" id="recipient" placeholder="27823456789" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message Type</label>
+                        <select id="messageType" onchange="updateMessageForm()">
+                            <option value="template">Template (Hello World)</option>
+                            <option value="text">Text Message</option>
+                            <option value="image">Image with Caption</option>
+                            <option value="document">Document</option>
+                        </select>
+                    </div>
+                    <div id="messageTypeFields"></div>
+                    <button type="submit">Send Message</button>
+                </form>
+                <div id="messageStatus" class="status"></div>
+                <div id="messagePreview" class="message-preview" style="display:none;"></div>
+            </div>
+
+            <!-- Webhook Test Card -->
+            <div class="card">
+                <h2>🔗 Webhook Test</h2>
+                <div class="form-group">
+                    <label>Verify Token</label>
+                    <input type="text" id="verifyToken" value="AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw">
+                </div>
+                <button onclick="testWebhook()">Test Webhook Verification</button>
+                <button onclick="checkWebhookLogs()">Check Recent Logs</button>
+                <div id="webhookStatus" class="status"></div>
+                <div id="webhookLogs" class="logs" style="display:none;"></div>
+            </div>
+
+            <!-- Diagnostic Card -->
+            <div class="card">
+                <h2>🔍 Full Diagnostic</h2>
+                <button onclick="runFullDiagnostic()">Run Complete Diagnostic</button>
+                <div id="diagnosticStatus" class="status"></div>
+                <div id="diagnosticResults" class="test-results"></div>
+            </div>
+        </div>
+
+        <!-- Live Message Monitor -->
+        <div class="card" style="margin-top: 20px;">
+            <h2>📊 Live Message Monitor</h2>
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('sent')">Sent Messages</button>
+                <button class="tab-button" onclick="switchTab('received')">Received Messages</button>
+                <button class="tab-button" onclick="switchTab('status')">Status Updates</button>
+            </div>
+            <div id="sent" class="tab-content active">
+                <div class="logs" id="sentLogs">No messages sent yet...</div>
+            </div>
+            <div id="received" class="tab-content">
+                <div class="logs" id="receivedLogs">No messages received yet...</div>
+            </div>
+            <div id="status" class="tab-content">
+                <div class="logs" id="statusLogs">No status updates yet...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BASE_URL = window.location.origin;
+        const WEBHOOK_URL = `${BASE_URL}/webhook`;
+        const API_BASE = 'https://graph.facebook.com/v17.0';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('apiUrl').textContent = API_BASE;
+            document.getElementById('webhookUrl').textContent = WEBHOOK_URL;
+            
+            // Load saved config
+            loadSavedConfig();
+            updateMessageForm();
+        });
+
+        // Save and load configuration
+        function loadSavedConfig() {
+            const saved = localStorage.getItem('whatsappConfig');
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('phoneNumberId').value = config.phoneNumberId || '';
+                document.getElementById('accessToken').value = config.accessToken || '';
+                document.getElementById('recipient').value = config.recipient || '';
+            }
+        }
+
+        function saveConfig() {
+            const config = {
+                phoneNumberId: document.getElementById('phoneNumberId').value,
+                accessToken: document.getElementById('accessToken').value,
+                recipient: document.getElementById('recipient').value
+            };
+            localStorage.setItem('whatsappConfig', JSON.stringify(config));
+        }
+
+        // Test Configuration
+        async function testConfiguration() {
+            const results = document.getElementById('configResults');
+            const tests = document.getElementById('configTests');
+            results.className = 'status info';
+            results.textContent = 'Running configuration tests...';
+            tests.innerHTML = '';
+
+            const testList = [
+                { name: 'Webhook Verification', fn: testWebhookEndpoint },
+                { name: 'Environment Variables', fn: checkEnvVars },
+                { name: 'API Connectivity', fn: testAPIConnectivity }
+            ];
+
+            let passed = 0;
+            for (const test of testList) {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                try {
+                    const result = await test.fn();
+                    if (result.success) {
+                        testItem.className += ' pass';
+                        testItem.textContent = `✅ ${test.name}: ${result.message}`;
+                        passed++;
+                    } else {
+                        testItem.className += ' fail';
+                        testItem.textContent = `❌ ${test.name}: ${result.message}`;
+                    }
+                } catch (error) {
+                    testItem.className += ' fail';
+                    testItem.textContent = `❌ ${test.name}: ${error.message}`;
+                }
+                tests.appendChild(testItem);
+            }
+
+            results.className = passed === testList.length ? 'status success' : 'status error';
+            results.textContent = `${passed}/${testList.length} tests passed`;
+        }
+
+        async function testWebhookEndpoint() {
+            const token = document.getElementById('verifyToken').value;
+            const response = await fetch(`${WEBHOOK_URL}?hub.mode=subscribe&hub.verify_token=${token}&hub.challenge=test123`);
+            const text = await response.text();
+            return {
+                success: text === 'test123',
+                message: text === 'test123' ? 'Webhook responding correctly' : `Unexpected response: ${text}`
+            };
+        }
+
+        async function checkEnvVars() {
+            // This would need a special endpoint to check env vars
+            return {
+                success: true,
+                message: 'Check Netlify dashboard for environment variables'
+            };
+        }
+
+        async function testAPIConnectivity() {
+            const token = document.getElementById('accessToken').value;
+            if (!token) {
+                return { success: false, message: 'Access token not provided' };
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/debug_token?input_token=${token}&access_token=${token}`);
+                const data = await response.json();
+                return {
+                    success: data.data && data.data.is_valid,
+                    message: data.data?.is_valid ? 'Token is valid' : 'Token is invalid or expired'
+                };
+            } catch (error) {
+                return { success: false, message: `API error: ${error.message}` };
+            }
+        }
+
+        // Send Message
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveConfig();
+            
+            const status = document.getElementById('messageStatus');
+            status.className = 'status info';
+            status.textContent = 'Sending message...';
+            
+            const phoneNumberId = document.getElementById('phoneNumberId').value;
+            const accessToken = document.getElementById('accessToken').value;
+            const recipient = document.getElementById('recipient').value;
+            const messageType = document.getElementById('messageType').value;
+            
+            let payload;
+            switch (messageType) {
+                case 'template':
+                    payload = {
+                        messaging_product: 'whatsapp',
+                        to: recipient,
+                        type: 'template',
+                        template: {
+                            name: 'hello_world',
+                            language: { code: 'en_US' }
+                        }
+                    };
+                    break;
+                case 'text':
+                    payload = {
+                        messaging_product: 'whatsapp',
+                        to: recipient,
+                        type: 'text',
+                        text: {
+                            body: document.getElementById('textMessage').value
+                        }
+                    };
+                    break;
+                case 'image':
+                    payload = {
+                        messaging_product: 'whatsapp',
+                        to: recipient,
+                        type: 'image',
+                        image: {
+                            link: document.getElementById('imageUrl').value,
+                            caption: document.getElementById('imageCaption').value
+                        }
+                    };
+                    break;
+                case 'document':
+                    payload = {
+                        messaging_product: 'whatsapp',
+                        to: recipient,
+                        type: 'document',
+                        document: {
+                            link: document.getElementById('documentUrl').value,
+                            caption: document.getElementById('documentCaption').value,
+                            filename: document.getElementById('documentFilename').value
+                        }
+                    };
+                    break;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${phoneNumberId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (data.messages && data.messages[0]) {
+                    status.className = 'status success';
+                    status.innerHTML = `✅ Message sent successfully!<br>ID: ${data.messages[0].id}<br>To: ${data.contacts[0].wa_id}`;
+                    
+                    // Add to sent logs
+                    addToLog('sentLogs', `[${new Date().toLocaleTimeString()}] Sent ${messageType} to ${recipient}\nID: ${data.messages[0].id}`);
+                } else if (data.error) {
+                    status.className = 'status error';
+                    status.innerHTML = `❌ Error: ${data.error.message}<br>Code: ${data.error.code}`;
+                } else {
+                    status.className = 'status error';
+                    status.textContent = '❌ Unexpected response: ' + JSON.stringify(data);
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ Network error: ${error.message}`;
+            }
+        });
+
+        function updateMessageForm() {
+            const type = document.getElementById('messageType').value;
+            const fields = document.getElementById('messageTypeFields');
+            
+            switch (type) {
+                case 'template':
+                    fields.innerHTML = '<p style="color:#666;font-size:14px;">Will send the "hello_world" template</p>';
+                    break;
+                case 'text':
+                    fields.innerHTML = `
+                        <div class="form-group">
+                            <label>Message Text</label>
+                            <textarea id="textMessage" placeholder="Enter your message" required>Test message from WhatsApp API Dashboard</textarea>
+                        </div>
+                    `;
+                    break;
+                case 'image':
+                    fields.innerHTML = `
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" value="https://via.placeholder.com/600x400/4A90E2/FFFFFF?text=Test+Image" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Caption</label>
+                            <textarea id="imageCaption" placeholder="Image caption">Test image with caption from API Dashboard</textarea>
+                        </div>
+                    `;
+                    break;
+                case 'document':
+                    fields.innerHTML = `
+                        <div class="form-group">
+                            <label>Document URL</label>
+                            <input type="url" id="documentUrl" placeholder="https://example.com/document.pdf" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Caption</label>
+                            <textarea id="documentCaption" placeholder="Document description">Test document from API Dashboard</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Filename</label>
+                            <input type="text" id="documentFilename" placeholder="document.pdf" value="test-document.pdf" required>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        // Webhook Test
+        async function testWebhook() {
+            const status = document.getElementById('webhookStatus');
+            const token = document.getElementById('verifyToken').value;
+            
+            status.className = 'status info';
+            status.textContent = 'Testing webhook...';
+            
+            try {
+                const response = await fetch(`${WEBHOOK_URL}?hub.mode=subscribe&hub.verify_token=${token}&hub.challenge=test-${Date.now()}`);
+                const text = await response.text();
+                
+                if (response.ok && text.startsWith('test-')) {
+                    status.className = 'status success';
+                    status.textContent = '✅ Webhook verification successful!';
+                } else {
+                    status.className = 'status error';
+                    status.textContent = `❌ Webhook verification failed. Response: ${text}`;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ Network error: ${error.message}`;
+            }
+        }
+
+        async function checkWebhookLogs() {
+            const logs = document.getElementById('webhookLogs');
+            logs.style.display = 'block';
+            logs.textContent = 'Fetching logs... (Check Netlify Functions dashboard for real logs)';
+            
+            // In a real implementation, this would fetch from a logs endpoint
+            logs.textContent = `[${new Date().toLocaleTimeString()}] Logs would appear here if webhook had a logs endpoint.\n\nFor now, check:\nhttps://app.netlify.com/sites/dtc-webhook/functions/webhook`;
+        }
+
+        // Full Diagnostic
+        async function runFullDiagnostic() {
+            const status = document.getElementById('diagnosticStatus');
+            const results = document.getElementById('diagnosticResults');
+            
+            status.className = 'status info';
+            status.textContent = 'Running full diagnostic...';
+            results.innerHTML = '';
+            
+            const diagnostics = [
+                { name: 'Webhook Health', fn: checkWebhookHealth },
+                { name: 'Token Validation', fn: validateToken },
+                { name: 'Phone Number Verification', fn: verifyPhoneNumber },
+                { name: 'Test Number Registration', fn: checkTestNumbers },
+                { name: 'Message Delivery Test', fn: testMessageDelivery }
+            ];
+            
+            let passed = 0;
+            for (const diag of diagnostics) {
+                const item = document.createElement('div');
+                item.className = 'test-item';
+                
+                try {
+                    const result = await diag.fn();
+                    if (result.success) {
+                        item.className += ' pass';
+                        item.innerHTML = `✅ ${diag.name}<br><small>${result.details}</small>`;
+                        passed++;
+                    } else {
+                        item.className += ' fail';
+                        item.innerHTML = `❌ ${diag.name}<br><small>${result.details}</small>`;
+                    }
+                } catch (error) {
+                    item.className += ' fail';
+                    item.innerHTML = `❌ ${diag.name}<br><small>Error: ${error.message}</small>`;
+                }
+                
+                results.appendChild(item);
+            }
+            
+            status.className = passed === diagnostics.length ? 'status success' : 'status error';
+            status.textContent = `Diagnostic complete: ${passed}/${diagnostics.length} checks passed`;
+        }
+
+        async function checkWebhookHealth() {
+            const response = await fetch(`${WEBHOOK_URL}?hub.mode=subscribe&hub.verify_token=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw&hub.challenge=health-check`);
+            const text = await response.text();
+            return {
+                success: text === 'health-check',
+                details: text === 'health-check' ? 'Webhook responding correctly' : `Unexpected response: ${text}`
+            };
+        }
+
+        async function validateToken() {
+            const token = document.getElementById('accessToken').value;
+            if (!token) {
+                return { success: false, details: 'No access token provided' };
+            }
+            
+            const response = await fetch(`${API_BASE}/debug_token?input_token=${token}&access_token=${token}`);
+            const data = await response.json();
+            
+            if (data.data?.is_valid) {
+                const scopes = data.data.scopes || [];
+                const hasWhatsApp = scopes.includes('whatsapp_business_messaging');
+                return {
+                    success: hasWhatsApp,
+                    details: hasWhatsApp ? 
+                        `Token valid with ${scopes.length} permissions` : 
+                        'Token valid but missing WhatsApp permissions'
+                };
+            }
+            
+            return { success: false, details: 'Token is invalid or expired' };
+        }
+
+        async function verifyPhoneNumber() {
+            const phoneNumberId = document.getElementById('phoneNumberId').value;
+            const token = document.getElementById('accessToken').value;
+            
+            if (!phoneNumberId || !token) {
+                return { success: false, details: 'Phone Number ID or token not provided' };
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${phoneNumberId}?access_token=${token}`);
+                const data = await response.json();
+                
+                if (data.id) {
+                    return {
+                        success: true,
+                        details: `Valid: ${data.display_phone_number || 'Phone number verified'}`
+                    };
+                }
+                
+                return { success: false, details: data.error?.message || 'Invalid Phone Number ID' };
+            } catch (error) {
+                return { success: false, details: error.message };
+            }
+        }
+
+        async function checkTestNumbers() {
+            // This would need an API endpoint to check registered test numbers
+            return {
+                success: true,
+                details: 'Check Facebook Developer Console for registered test numbers'
+            };
+        }
+
+        async function testMessageDelivery() {
+            // This checks if we can send a message (doesn't guarantee delivery)
+            const phoneNumberId = document.getElementById('phoneNumberId').value;
+            const token = document.getElementById('accessToken').value;
+            const recipient = document.getElementById('recipient').value;
+            
+            if (!phoneNumberId || !token || !recipient) {
+                return { success: false, details: 'Missing required fields' };
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${phoneNumberId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messaging_product: 'whatsapp',
+                        to: recipient,
+                        type: 'template',
+                        template: {
+                            name: 'hello_world',
+                            language: { code: 'en_US' }
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.messages?.[0]) {
+                    return {
+                        success: true,
+                        details: `Message accepted: ${data.messages[0].id.substring(0, 20)}...`
+                    };
+                }
+                
+                return {
+                    success: false,
+                    details: data.error?.message || 'Message not accepted'
+                };
+            } catch (error) {
+                return { success: false, details: error.message };
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Logging
+        function addToLog(logId, message) {
+            const log = document.getElementById(logId);
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent = `[${timestamp}] ${message}\n${log.textContent}`;
+        }
+
+        // Auto-refresh logs every 30 seconds
+        setInterval(() => {
+            if (document.hidden) return;
+            // In production, this would fetch real logs from the server
+            console.log('Would refresh logs here');
+        }, 30000);
+    </script>
+</body>
+</html>

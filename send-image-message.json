@@ -1,0 +1,10 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "27823456789",
+  "type": "image",
+  "image": {
+    "link": "https://example.com/image.jpg",
+    "caption": "This is your image caption with text message"
+  }
+}

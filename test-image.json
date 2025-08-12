@@ -1,0 +1,9 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "27823456789",
+  "type": "image",
+  "image": {
+    "link": "https://via.placeholder.com/600x400/4A90E2/FFFFFF?text=Test+Image",
+    "caption": "Test message with image"
+  }
+}
