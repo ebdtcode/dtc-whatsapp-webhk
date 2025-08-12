@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# Load environment variables
+source ./load-env.sh
+
 # Test the production webhook verification
 WEBHOOK_URL="https://dtc-webhook.netlify.app/webhook"
-VERIFY_TOKEN="AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw"
+VERIFY_TOKEN="${WEBHOOK_VERIFY_TOKEN}"
 
 echo "Testing webhook verification at: $WEBHOOK_URL"
 echo "Using token: $VERIFY_TOKEN"

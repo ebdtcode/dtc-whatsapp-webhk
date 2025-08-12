@@ -577,15 +577,29 @@
                     };
                     break;
                 case 'image':
+                    const imageUrl = document.getElementById('imageUrl').value;
+                    const imageCaption = document.getElementById('imageCaption').value;
+                    
+                    // Validate image URL
+                    if (!imageUrl.startsWith('https://')) {
+                        status.className = 'status error';
+                        status.innerHTML = '❌ Image URL must use HTTPS (not HTTP)';
+                        return;
+                    }
+                    
                     payload = {
                         messaging_product: 'whatsapp',
                         to: recipient,
                         type: 'image',
                         image: {
-                            link: document.getElementById('imageUrl').value,
-                            caption: document.getElementById('imageCaption').value
+                            link: imageUrl
                         }
                     };
+                    
+                    // Only add caption if provided
+                    if (imageCaption && imageCaption.trim()) {
+                        payload.image.caption = imageCaption;
+                    }
                     break;
                 case 'document':
                     payload = {
@@ -621,7 +635,20 @@
                     addToLog('sentLogs', `[${new Date().toLocaleTimeString()}] Sent ${messageType} to ${recipient}\nID: ${data.messages[0].id}`);
                 } else if (data.error) {
                     status.className = 'status error';
-                    status.innerHTML = `❌ Error: ${data.error.message}<br>Code: ${data.error.code}`;
+                    let errorDetails = `❌ Error: ${data.error.message}<br>Code: ${data.error.code}`;
+                    
+                    // Add specific help for image errors
+                    if (messageType === 'image' && data.error.code === 100) {
+                        errorDetails += `<br><br><b>Image Error Tips:</b><br>`;
+                        errorDetails += `• Ensure URL is HTTPS (not HTTP)<br>`;
+                        errorDetails += `• URL must be publicly accessible<br>`;
+                        errorDetails += `• Try a test image: https://picsum.photos/400/300<br>`;
+                        errorDetails += `• Check image is under 5MB`;
+                    } else if (data.error.message && data.error.message.includes('24 hours')) {
+                        errorDetails += `<br><br><b>Solution:</b> Send a template message first, wait for reply, then send image.`;
+                    }
+                    
+                    status.innerHTML = errorDetails;
                 } else {
                     status.className = 'status error';
                     status.textContent = '❌ Unexpected response: ' + JSON.stringify(data);
@@ -663,12 +690,24 @@
                 case 'image':
                     fields.innerHTML = `
                         <div class="form-group">
-                            <label>Image URL</label>
-                            <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" value="https://via.placeholder.com/600x400/4A90E2/FFFFFF?text=Test+Image" required>
+                            <label>Image URL <span style="color: #666;">(must be publicly accessible, max 5MB)</span></label>
+                            <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" value="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png" required>
                         </div>
                         <div class="form-group">
-                            <label>Caption</label>
-                            <textarea id="imageCaption" placeholder="Image caption">Test image with caption from API Dashboard</textarea>
+                            <label>Caption <span style="color: #666;">(optional)</span></label>
+                            <textarea id="imageCaption" placeholder="Image caption">Test image sent from WhatsApp API Dashboard at ${new Date().toLocaleString()}</textarea>
+                        </div>
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <small>
+                                <b>📸 Image Requirements:</b><br>
+                                • Must be HTTPS URL (not HTTP)<br>
+                                • Publicly accessible (not localhost/private)<br>
+                                • Supported formats: JPEG, PNG<br>
+                                • Maximum size: 5MB<br>
+                                • Test URLs that work:<br>
+                                &nbsp;&nbsp;- https://picsum.photos/400/300<br>
+                                &nbsp;&nbsp;- https://via.placeholder.com/400x300.png
+                            </small>
                         </div>
                     `;
                     break;
