@@ -4,7 +4,8 @@ import crypto from 'crypto';
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || '';
 const APP_SECRET = process.env.APP_SECRET || '';
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID || '';
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || '';
+// Use System User token for production, fallback to regular ACCESS_TOKEN
+const ACCESS_TOKEN = process.env.SYSTEM_USER_ACCESS_TOKEN || process.env.ACCESS_TOKEN || '';
 
 interface WhatsAppMessage {
   from: string;
