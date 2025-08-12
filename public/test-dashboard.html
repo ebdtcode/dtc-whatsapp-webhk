@@ -247,12 +247,12 @@
                 <h2>📨 Send Test Message</h2>
                 <form id="messageForm">
                     <div class="form-group">
-                        <label>Phone Number ID</label>
-                        <input type="text" id="phoneNumberId" placeholder="15-17 digit ID" required>
+                        <label>Phone Number ID <small>(auto-loaded from Netlify)</small></label>
+                        <input type="text" id="phoneNumberId" placeholder="Loading from Netlify..." readonly style="background: #f5f5f5;">
                     </div>
                     <div class="form-group">
-                        <label>Access Token</label>
-                        <input type="password" id="accessToken" placeholder="Your access token" required>
+                        <label>Access Token <small>(auto-loaded from Netlify)</small></label>
+                        <input type="password" id="accessToken" placeholder="Loading from Netlify..." readonly style="background: #f5f5f5;">
                     </div>
                     <div class="form-group">
                         <label>Recipient Number</label>
@@ -372,42 +372,55 @@
         // Load configuration from backend
         async function loadBackendConfig() {
             try {
-                // First try without auth to get public config
+                // Get ALL config from backend including tokens
                 const response = await fetch('/.netlify/functions/get-config');
                 const config = await response.json();
                 
-                // Set Phone Number ID if available
+                console.log('Loaded config from backend:', {
+                    hasToken: config.hasToken,
+                    hasPhoneNumber: !!config.phoneNumberId,
+                    configured: config.configured,
+                    missingVars: config.missingVars
+                });
+                
+                // Auto-fill ALL fields from backend
                 if (config.phoneNumberId) {
                     document.getElementById('phoneNumberId').value = config.phoneNumberId;
-                    console.log('Loaded Phone Number ID from backend');
                 }
                 
-                // Check if token is stored in backend
-                if (config.hasToken) {
-                    document.getElementById('configStatus').textContent = `Token stored (${config.tokenType})`;
-                    document.getElementById('configStatus').style.color = '#4caf50';
-                    
-                    // Try to get token with admin secret if available
-                    const adminSecret = localStorage.getItem('adminSecret');
-                    if (adminSecret) {
-                        const authResponse = await fetch('/.netlify/functions/get-config', {
-                            headers: {
-                                'Authorization': `Bearer ${adminSecret}`
-                            }
-                        });
-                        const authConfig = await authResponse.json();
-                        if (authConfig.accessToken) {
-                            document.getElementById('accessToken').value = authConfig.accessToken;
-                            console.log('Loaded access token from backend');
-                        }
-                    }
-                } else {
-                    document.getElementById('configStatus').textContent = 'No token in backend';
-                    document.getElementById('configStatus').style.color = '#ff9800';
+                if (config.accessToken) {
+                    document.getElementById('accessToken').value = config.accessToken;
+                    // Don't save the backend token to localStorage
                 }
+                
+                if (config.webhookVerifyToken) {
+                    document.getElementById('verifyToken').value = config.webhookVerifyToken;
+                }
+                
+                // Update status display
+                if (config.configured) {
+                    document.getElementById('configStatus').textContent = '✅ Fully configured from Netlify';
+                    document.getElementById('configStatus').style.color = '#4caf50';
+                } else if (config.missingVars && config.missingVars.length > 0) {
+                    document.getElementById('configStatus').textContent = `⚠️ Missing in Netlify: ${config.missingVars.join(', ')}`;
+                    document.getElementById('configStatus').style.color = '#ff9800';
+                } else {
+                    document.getElementById('configStatus').textContent = '✅ Loaded from Netlify';
+                    document.getElementById('configStatus').style.color = '#4caf50';
+                }
+                
+                // Store that we have backend config (but not the actual token)
+                window.hasBackendConfig = true;
+                window.backendConfig = {
+                    phoneNumberId: config.phoneNumberId,
+                    webhookUrl: config.webhookUrl,
+                    apiVersion: config.apiVersion
+                };
+                
             } catch (error) {
-                console.log('Could not load backend config:', error);
-                document.getElementById('configStatus').textContent = 'Using local config';
+                console.error('Could not load backend config:', error);
+                document.getElementById('configStatus').textContent = '❌ Could not load from Netlify';
+                document.getElementById('configStatus').style.color = '#f44336';
             }
         }
         
@@ -428,9 +441,8 @@
         }
 
         function saveConfig() {
+            // Only save recipient to localStorage, not credentials
             const config = {
-                phoneNumberId: document.getElementById('phoneNumberId').value,
-                accessToken: document.getElementById('accessToken').value,
                 recipient: document.getElementById('recipient').value
             };
             localStorage.setItem('whatsappConfig', JSON.stringify(config));
