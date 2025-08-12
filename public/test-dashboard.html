@@ -280,7 +280,7 @@
                 <h2>🔗 Webhook Test</h2>
                 <div class="form-group">
                     <label>Verify Token</label>
-                    <input type="text" id="verifyToken" value="AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw">
+                    <input type="text" id="verifyToken" value="AkqMBZAI4JZCg9mAHwBBxKL9J8G8">
                 </div>
                 <button onclick="testWebhook()">Test Webhook Verification</button>
                 <button onclick="checkWebhookLogs()">Check Recent Logs</button>
@@ -904,7 +904,9 @@
         }
 
         async function checkWebhookHealth() {
-            const response = await fetch(`${WEBHOOK_URL}?hub.mode=subscribe&hub.verify_token=AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw&hub.challenge=health-check`);
+            // Use the actual verify token from the form
+            const verifyToken = document.getElementById('verifyToken').value || 'AkqMBZAI4JZCg9mAHwBBxKL9J8G8';
+            const response = await fetch(`${WEBHOOK_URL}?hub.mode=subscribe&hub.verify_token=${verifyToken}&hub.challenge=health-check`);
             const text = await response.text();
             return {
                 success: text === 'health-check',
@@ -972,10 +974,15 @@
             // This checks if we can send a message (doesn't guarantee delivery)
             const phoneNumberId = document.getElementById('phoneNumberId').value;
             const token = document.getElementById('accessToken').value;
-            const recipient = document.getElementById('recipient').value;
+            let recipient = document.getElementById('recipient').value;
             
-            if (!phoneNumberId || !token || !recipient) {
-                return { success: false, details: 'Missing required fields' };
+            // If no recipient specified, use a test number or prompt
+            if (!recipient) {
+                recipient = '15550253483'; // WhatsApp test number
+            }
+            
+            if (!phoneNumberId || !token) {
+                return { success: false, details: 'Missing Phone Number ID or Access Token' };
             }
             
             try {
@@ -1001,7 +1008,15 @@
                 if (data.messages?.[0]) {
                     return {
                         success: true,
-                        details: `Message accepted: ${data.messages[0].id.substring(0, 20)}...`
+                        details: `Message accepted for ${recipient}: ${data.messages[0].id.substring(0, 20)}...`
+                    };
+                }
+                
+                // Check for specific errors
+                if (data.error?.message?.includes('not a valid phone number')) {
+                    return {
+                        success: false,
+                        details: `Invalid recipient number. Register ${recipient} as test number in Facebook.`
                     };
                 }
                 
