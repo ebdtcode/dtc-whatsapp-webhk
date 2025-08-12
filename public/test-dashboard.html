@@ -237,6 +237,7 @@
                     <div>Status: <span id="configStatus">Not tested</span></div>
                 </div>
                 <button onclick="testConfiguration()">Run Configuration Test</button>
+                <button onclick="clearCache()" style="background: #ff5722; margin-left: 10px;">Clear Cache</button>
                 <div id="configResults" class="status"></div>
                 <div id="configTests" class="test-results"></div>
             </div>
@@ -326,6 +327,9 @@
             document.getElementById('apiUrl').textContent = API_BASE;
             document.getElementById('webhookUrl').textContent = WEBHOOK_URL;
             
+            // Check for old expired token and clear it
+            clearExpiredTokens();
+            
             // Try to load config from backend first
             await loadBackendConfig();
             
@@ -334,6 +338,37 @@
             updateMessageForm();
         });
 
+        // Clear expired tokens from cache
+        function clearExpiredTokens() {
+            const saved = localStorage.getItem('whatsappConfig');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    // Check if the token starts with the old expired token pattern
+                    if (config.accessToken && config.accessToken.startsWith('EAAL3XBJiLL8')) {
+                        console.log('Clearing expired token from cache');
+                        config.accessToken = '';
+                        localStorage.setItem('whatsappConfig', JSON.stringify(config));
+                    }
+                } catch (e) {
+                    console.error('Error checking cached token:', e);
+                }
+            }
+        }
+        
+        // Clear all cached configuration
+        function clearCache() {
+            if (confirm('Clear all cached configuration? You will need to re-enter your credentials.')) {
+                localStorage.removeItem('whatsappConfig');
+                localStorage.removeItem('adminSecret');
+                document.getElementById('phoneNumberId').value = '';
+                document.getElementById('accessToken').value = '';
+                document.getElementById('recipient').value = '';
+                alert('Cache cleared. Refreshing page...');
+                location.reload();
+            }
+        }
+        
         // Load configuration from backend
         async function loadBackendConfig() {
             try {
@@ -461,15 +496,31 @@
         async function testAPIConnectivity() {
             const token = document.getElementById('accessToken').value;
             if (!token) {
-                return { success: false, message: 'Access token not provided' };
+                return { success: false, message: 'Access token not provided. Add token in Netlify or enter below.' };
+            }
+            
+            // Check if this is the old expired token
+            if (token.startsWith('EAAL3XBJiLL8')) {
+                return { success: false, message: 'This is the OLD EXPIRED token! Clear cache and use new System User token.' };
             }
             
             try {
                 const response = await fetch(`${API_BASE}/debug_token?input_token=${token}&access_token=${token}`);
                 const data = await response.json();
+                
+                if (data.error) {
+                    // Parse the specific error
+                    if (data.error.message && data.error.message.includes('Session has expired')) {
+                        return { success: false, message: `Token expired: ${data.error.message}` };
+                    }
+                    return { success: false, message: `Token error: ${data.error.message || 'Unknown error'}` };
+                }
+                
                 return {
                     success: data.data && data.data.is_valid,
-                    message: data.data?.is_valid ? 'Token is valid' : 'Token is invalid or expired'
+                    message: data.data?.is_valid ? 
+                        `Token valid (Type: ${data.data.type || 'Unknown'})` : 
+                        'Token is invalid'
                 };
             } catch (error) {
                 return { success: false, message: `API error: ${error.message}` };
