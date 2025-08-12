@@ -3,10 +3,13 @@
 # Fixed script for sending WhatsApp messages
 # The error "messaging_product is required" usually means the JSON isn't being sent
 
-# UPDATE THESE VALUES
-PHONE_NUMBER_ID="YOUR_PHONE_NUMBER_ID"
-ACCESS_TOKEN="YOUR_ACCESS_TOKEN"
-RECIPIENT="27823456789"  # Phone number to send to (no + sign)
+# Load environment variables
+source ./load-env.sh
+
+# Use environment variables
+PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"
+ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
+RECIPIENT="${1:-27823456789}"  # Can pass as argument or use default
 
 echo "Sending WhatsApp message..."
 echo ""

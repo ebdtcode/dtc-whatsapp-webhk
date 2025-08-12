@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Script to find your WhatsApp Business Account ID and Phone Numbers
-ACCESS_TOKEN="EAAL3XBJiLL8BPLVcvdZAZCoi2UQZAkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3Vxth74zfttWDp0V14ybRSfsQVLCnCDHTAZBKTbVnXVOM8gCpCGSEjVfdhhl59IbZCN1XVtP53c4TDfABwCGRE8Y5QzttqBX3HfFB5ZCBICNi9LnuRQAdGZCGTC665khF1d06xyfSPofKlFnYOZC9vHilOj5cuXIBdEEtZBfQc2ZAscRPKXJ5dMEIZD"
+
+# Load environment variables
+source ./load-env.sh
+
+ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
 
 echo "Finding your WhatsApp Business Account details..."
 echo ""

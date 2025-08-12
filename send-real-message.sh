@@ -3,9 +3,12 @@
 # Send a real WhatsApp message using the WhatsApp Cloud API
 # Usage: ./send-real-message.sh <recipient_number>
 
+# Load environment variables
+source ./load-env.sh
+
 RECIPIENT=${1:-"27823456789"}  # Replace with actual number
-ACCESS_TOKEN="EAAL3XBJiLL8BPLVcvdZAZCoi2UQZAkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3Vxth74zfttWDp0V14ybRSfsQVLCnCDHTAZBKTbVnXVOM8gCpCGSEjVfdhhl59IbZCN1XVtP53c4TDfABwCGRE8Y5QzttqBX3HfFB5ZCBICNi9LnuRQAdGZCGTC665khF1d06xyfSPofKlFnYOZC9vHilOj5cuXIBdEEtZBfQc2ZAscRPKXJ5dMEIZD"
-PHONE_NUMBER_ID="12405166565"
+ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
+PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"
 
 echo "Sending WhatsApp message to: $RECIPIENT"
 echo ""

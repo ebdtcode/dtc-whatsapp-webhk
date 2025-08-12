@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# UPDATE THESE TWO VALUES!
-PHONE_NUMBER_ID="YOUR_PHONE_NUMBER_ID"
-ACCESS_TOKEN="YOUR_ACCESS_TOKEN"
-RECIPIENT="27823456789"  # Phone to send to
+# Load environment variables
+source ./load-env.sh
+
+# Use environment variables
+PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"
+ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
+RECIPIENT="${1:-27823456789}"  # Can pass as argument or use default
 
 # Create the JSON file
 cat > image-message.json << EOF

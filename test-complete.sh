@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # WhatsApp API Complete Test Suite
-# Update these variables with your actual values
 
-# CONFIGURATION - UPDATE THESE!
-PHONE_NUMBER_ID="YOUR_PHONE_NUMBER_ID"  # Get from Facebook Developer Console
-ACCESS_TOKEN="YOUR_ACCESS_TOKEN"        # Your System User or regular token
-TEST_PHONE="27823456789"                # Phone number to send test messages to
+# Load environment variables
+source ./load-env.sh
+
+# Use environment variables with defaults
+PHONE_NUMBER_ID="${PHONE_NUMBER_ID}"
+ACCESS_TOKEN="${SYSTEM_USER_ACCESS_TOKEN}"
+TEST_PHONE="${1:-27823456789}"  # Can pass as argument or use default
 WEBHOOK_URL="https://dtc-webhook.netlify.app/webhook"
-VERIFY_TOKEN="AkqMBZAI4JZCg9mAHwBBxKL9J8G8L0H7S3OL3pK8ha3GhqAo81gplkzaqw"
+VERIFY_TOKEN="${WEBHOOK_VERIFY_TOKEN}"
 
 # Colors for output
 RED='\033[0;31m'
