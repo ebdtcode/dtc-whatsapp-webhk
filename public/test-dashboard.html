@@ -261,10 +261,10 @@
                     <div class="form-group">
                         <label>Message Type</label>
                         <select id="messageType" onchange="updateMessageForm()">
-                            <option value="template">Template (Hello World)</option>
-                            <option value="text">Text Message</option>
+                            <option value="text">Text Message (Your Custom Message)</option>
                             <option value="image">Image with Caption</option>
                             <option value="document">Document</option>
+                            <option value="template">Template (Hello World - First Contact Only)</option>
                         </select>
                     </div>
                     <div id="messageTypeFields"></div>
@@ -637,14 +637,26 @@
             const fields = document.getElementById('messageTypeFields');
             
             switch (type) {
-                case 'template':
-                    fields.innerHTML = '<p style="color:#666;font-size:14px;">Will send the "hello_world" template</p>';
-                    break;
                 case 'text':
                     fields.innerHTML = `
                         <div class="form-group">
-                            <label>Message Text</label>
-                            <textarea id="textMessage" placeholder="Enter your message" required>Test message from WhatsApp API Dashboard</textarea>
+                            <label>Your Message <span style="color: #4caf50;">(This is what will be sent)</span></label>
+                            <textarea id="textMessage" placeholder="Type your actual message here..." required rows="4">Hello! This is a test message from the dashboard.</textarea>
+                        </div>
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <small>💡 <b>Note:</b> This sends YOUR message above. If recipient hasn't messaged you in last 24 hours, use Template first.</small>
+                        </div>
+                    `;
+                    break;
+                case 'template':
+                    fields.innerHTML = `
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 5px;">
+                            <p style="color:#666;font-size:14px;margin:0;">
+                                <b>⚠️ Template Message (Hello World)</b><br>
+                                This will send Meta's default message:<br>
+                                <em>"Hello World. Welcome and congratulations..."</em><br><br>
+                                Use this ONLY for first contact. After they reply, use "Text Message" to send custom messages.
+                            </p>
                         </div>
                     `;
                     break;
