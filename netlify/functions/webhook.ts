@@ -49,29 +49,53 @@ interface WhatsAppMessage {
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   const { httpMethod, queryStringParameters, body, headers } = event;
 
+  // Log incoming request for debugging
+  console.log('Incoming request:', {
+    method: httpMethod,
+    queryParams: queryStringParameters,
+    headers: headers
+  });
+
   // Handle GET request for webhook verification
   if (httpMethod === 'GET') {
     const mode = queryStringParameters?.['hub.mode'];
     const token = queryStringParameters?.['hub.verify_token'];
     const challenge = queryStringParameters?.['hub.challenge'];
 
-    if (mode && token) {
+    console.log('Verification request:', {
+      mode,
+      token,
+      challenge,
+      expectedToken: WEBHOOK_VERIFY_TOKEN
+    });
+
+    if (mode && token && challenge) {
       if (mode === 'subscribe' && token === WEBHOOK_VERIFY_TOKEN) {
-        console.log('WEBHOOK_VERIFIED');
+        console.log('WEBHOOK_VERIFIED - returning challenge:', challenge);
+        // Return plain text challenge for Facebook verification
         return {
           statusCode: 200,
-          body: challenge || '',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: challenge,
         };
       } else {
+        console.error('Token mismatch or wrong mode:', {
+          receivedToken: token,
+          expectedToken: WEBHOOK_VERIFY_TOKEN,
+          mode
+        });
         return {
           statusCode: 403,
-          body: 'Forbidden',
+          body: 'Forbidden - Token mismatch',
         };
       }
     } else {
+      console.error('Missing required parameters:', { mode, token, challenge });
       return {
         statusCode: 400,
-        body: 'Bad Request',
+        body: 'Bad Request - Missing parameters',
       };
     }
   }
@@ -104,6 +128,8 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
     try {
       const payload = JSON.parse(body);
+      
+      console.log('Received POST payload:', JSON.stringify(payload, null, 2));
 
       if (payload.object === 'whatsapp_business_account') {
         for (const entry of payload.entry || []) {

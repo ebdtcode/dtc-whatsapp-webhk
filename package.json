@@ -4,7 +4,7 @@
   "description": "DTC WhatsApp Cloud API Webhook for Netlify",
   "scripts": {
     "dev": "netlify dev",
-    "build": "tsc",
+    "build": "echo 'Functions-only deployment, no build needed'",
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "netlify-cli": "^17.10.1",
+    "netlify-cli": "^21.6.0",
     "typescript": "^5.3.3"
   },
   "engines": {

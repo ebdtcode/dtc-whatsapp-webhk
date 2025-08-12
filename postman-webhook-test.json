@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "12041566565",
+              "phone_number_id": "12405166565"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Test User"
+                },
+                "wa_id": "27823456789"
+              }
+            ],
+            "messages": [
+              {
+                "from": "27823456789",
+                "id": "wamid.test123",
+                "timestamp": "1669233778",
+                "type": "text",
+                "text": {
+                  "body": "Hello! Testing webhook from Postman"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

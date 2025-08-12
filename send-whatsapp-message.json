@@ -1,0 +1,8 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "27123456789",
+  "type": "text",
+  "text": {
+    "body": "Hello! This is a test message from DTC webhook."
+  }
+}
