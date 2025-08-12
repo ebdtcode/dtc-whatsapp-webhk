@@ -322,22 +322,72 @@
         const API_BASE = 'https://graph.facebook.com/v17.0';
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('apiUrl').textContent = API_BASE;
             document.getElementById('webhookUrl').textContent = WEBHOOK_URL;
             
-            // Load saved config
+            // Try to load config from backend first
+            await loadBackendConfig();
+            
+            // Load saved config from localStorage as fallback
             loadSavedConfig();
             updateMessageForm();
         });
 
+        // Load configuration from backend
+        async function loadBackendConfig() {
+            try {
+                // First try without auth to get public config
+                const response = await fetch('/.netlify/functions/get-config');
+                const config = await response.json();
+                
+                // Set Phone Number ID if available
+                if (config.phoneNumberId) {
+                    document.getElementById('phoneNumberId').value = config.phoneNumberId;
+                    console.log('Loaded Phone Number ID from backend');
+                }
+                
+                // Check if token is stored in backend
+                if (config.hasToken) {
+                    document.getElementById('configStatus').textContent = `Token stored (${config.tokenType})`;
+                    document.getElementById('configStatus').style.color = '#4caf50';
+                    
+                    // Try to get token with admin secret if available
+                    const adminSecret = localStorage.getItem('adminSecret');
+                    if (adminSecret) {
+                        const authResponse = await fetch('/.netlify/functions/get-config', {
+                            headers: {
+                                'Authorization': `Bearer ${adminSecret}`
+                            }
+                        });
+                        const authConfig = await authResponse.json();
+                        if (authConfig.accessToken) {
+                            document.getElementById('accessToken').value = authConfig.accessToken;
+                            console.log('Loaded access token from backend');
+                        }
+                    }
+                } else {
+                    document.getElementById('configStatus').textContent = 'No token in backend';
+                    document.getElementById('configStatus').style.color = '#ff9800';
+                }
+            } catch (error) {
+                console.log('Could not load backend config:', error);
+                document.getElementById('configStatus').textContent = 'Using local config';
+            }
+        }
+        
         // Save and load configuration
         function loadSavedConfig() {
             const saved = localStorage.getItem('whatsappConfig');
             if (saved) {
                 const config = JSON.parse(saved);
-                document.getElementById('phoneNumberId').value = config.phoneNumberId || '';
-                document.getElementById('accessToken').value = config.accessToken || '';
+                // Only override if not already loaded from backend
+                if (!document.getElementById('phoneNumberId').value) {
+                    document.getElementById('phoneNumberId').value = config.phoneNumberId || '';
+                }
+                if (!document.getElementById('accessToken').value) {
+                    document.getElementById('accessToken').value = config.accessToken || '';
+                }
                 document.getElementById('recipient').value = config.recipient || '';
             }
         }
