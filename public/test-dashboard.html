@@ -295,6 +295,74 @@
                 <div id="diagnosticStatus" class="status"></div>
                 <div id="diagnosticResults" class="test-results"></div>
             </div>
+
+            <!-- Property Listing Card -->
+            <div class="card">
+                <h2>🏠 Send Property Listing</h2>
+                <form id="propertyForm">
+                    <div class="form-group">
+                        <label>Recipient Number</label>
+                        <input type="text" id="propertyRecipient" placeholder="27823456789" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Property Title</label>
+                        <input type="text" id="propertyTitle" placeholder="Luxury 3BR Apartment in CBD" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="propertyDescription" placeholder="Beautiful modern apartment with stunning views..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input type="text" id="propertyPrice" placeholder="R 2,500,000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="propertyLocation" placeholder="Cape Town CBD, Western Cape">
+                    </div>
+                    <div class="form-group">
+                        <label>Features (comma-separated)</label>
+                        <input type="text" id="propertyFeatures" placeholder="3 Bedrooms, 2 Bathrooms, Parking, Security">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" id="propertyContact" placeholder="27821234567">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URLs (one per line, HTTPS only)</label>
+                        <textarea id="propertyImages" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg" rows="4"></textarea>
+                    </div>
+                    <button type="submit">Send Property Listing</button>
+                </form>
+                <div id="propertyStatus" class="status"></div>
+            </div>
+
+            <!-- Batch Send Card -->
+            <div class="card">
+                <h2>📤 Batch Send Messages</h2>
+                <form id="batchForm">
+                    <div class="form-group">
+                        <label>Recipients (one per line)</label>
+                        <textarea id="batchRecipients" placeholder="27823456789&#10;27829876543&#10;27821234567" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Message Type</label>
+                        <select id="batchType">
+                            <option value="text">Text Message</option>
+                            <option value="template">Template Message</option>
+                            <option value="images">Multiple Images</option>
+                        </select>
+                    </div>
+                    <div id="batchFields"></div>
+                    <div class="form-group">
+                        <label>Delay between sends (ms)</label>
+                        <input type="number" id="batchDelay" value="1000" min="100" max="10000">
+                    </div>
+                    <button type="submit">Send Batch</button>
+                </form>
+                <div id="batchStatus" class="status"></div>
+                <div id="batchResults" class="test-results"></div>
+            </div>
         </div>
 
         <!-- Live Message Monitor -->
@@ -633,6 +701,225 @@
                 return { success: false, message: `API error: ${error.message}` };
             }
         }
+
+        // Property Listing Form Handler
+        document.getElementById('propertyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const status = document.getElementById('propertyStatus');
+            status.className = 'status info';
+            status.textContent = 'Preparing property listing...';
+            
+            // Collect form data
+            const imageUrls = document.getElementById('propertyImages').value
+                .split('\n')
+                .filter(url => url.trim())
+                .map((url, index) => ({
+                    url: url.trim(),
+                    caption: `Photo ${index + 1}`,
+                    order: index
+                }));
+            
+            const propertyData = {
+                recipient: document.getElementById('propertyRecipient').value,
+                property: {
+                    id: `prop_${Date.now()}`,
+                    title: document.getElementById('propertyTitle').value,
+                    description: document.getElementById('propertyDescription').value,
+                    price: document.getElementById('propertyPrice').value,
+                    location: document.getElementById('propertyLocation').value,
+                    features: document.getElementById('propertyFeatures').value
+                        .split(',')
+                        .map(f => f.trim())
+                        .filter(f => f),
+                    images: imageUrls,
+                    contactNumber: document.getElementById('propertyContact').value
+                },
+                sendDelay: 1000,
+                includeDetails: true
+            };
+            
+            try {
+                const response = await fetch('/.netlify/functions/send-property-listing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(propertyData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `✅ Property listing sent successfully!<br>`;
+                    status.innerHTML += `Summary: ${result.summary.sent}/${result.summary.total} messages sent<br>`;
+                    
+                    // Show details of what was sent
+                    if (result.results) {
+                        status.innerHTML += '<br><b>Details:</b><br>';
+                        result.results.forEach(r => {
+                            const icon = r.success ? '✅' : '❌';
+                            status.innerHTML += `${icon} ${r.type}: ${r.success ? 'Sent' : r.error}<br>`;
+                        });
+                    }
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `❌ Failed to send property listing<br>${result.error || 'Unknown error'}`;
+                    if (result.details) {
+                        status.innerHTML += `<br>Details: ${result.details}`;
+                    }
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ Network error: ${error.message}`;
+            }
+        });
+
+        // Batch Send Form Handler  
+        document.getElementById('batchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const status = document.getElementById('batchStatus');
+            const results = document.getElementById('batchResults');
+            status.className = 'status info';
+            status.textContent = 'Sending batch messages...';
+            results.innerHTML = '';
+            
+            const recipients = document.getElementById('batchRecipients').value
+                .split('\n')
+                .map(r => r.trim())
+                .filter(r => r);
+                
+            const type = document.getElementById('batchType').value;
+            const delay = parseInt(document.getElementById('batchDelay').value);
+            
+            let batchData;
+            
+            switch (type) {
+                case 'text':
+                    const textMsg = document.getElementById('batchTextMessage')?.value || 'Test batch message';
+                    batchData = {
+                        type: 'single',
+                        data: {
+                            recipients,
+                            messageType: 'text',
+                            content: {
+                                text: { body: textMsg }
+                            },
+                            options: {
+                                delayBetweenSends: delay,
+                                continueOnError: true
+                            }
+                        }
+                    };
+                    break;
+                    
+                case 'template':
+                    batchData = {
+                        type: 'broadcast',
+                        data: {
+                            recipients,
+                            template: 'hello_world',
+                            parameters: {}
+                        }
+                    };
+                    break;
+                    
+                case 'images':
+                    const imageUrls = (document.getElementById('batchImages')?.value || '')
+                        .split('\n')
+                        .filter(url => url.trim())
+                        .map(url => ({
+                            url: url.trim(),
+                            caption: `Image from batch send`
+                        }));
+                        
+                    batchData = {
+                        type: 'images',
+                        data: {
+                            recipients,
+                            images: imageUrls,
+                            options: {
+                                delayBetweenImages: 500,
+                                delayBetweenRecipients: delay
+                            }
+                        }
+                    };
+                    break;
+            }
+            
+            try {
+                const response = await fetch('/.netlify/functions/batch-send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(batchData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `✅ Batch send complete!<br>`;
+                    status.innerHTML += `Summary: ${result.summary.successful}/${result.summary.total} successful (${result.summary.deliveryRate})<br>`;
+                    
+                    // Show individual results
+                    if (result.results) {
+                        result.results.forEach(r => {
+                            const item = document.createElement('div');
+                            item.className = r.success ? 'test-item pass' : 'test-item fail';
+                            item.innerHTML = `${r.success ? '✅' : '❌'} ${r.recipient}: ${r.success ? 'Sent' : r.error}`;
+                            results.appendChild(item);
+                        });
+                    }
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `❌ Batch send failed<br>${result.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ Network error: ${error.message}`;
+            }
+        });
+
+        // Update batch form fields based on type
+        document.getElementById('batchType').addEventListener('change', (e) => {
+            const fields = document.getElementById('batchFields');
+            const type = e.target.value;
+            
+            switch (type) {
+                case 'text':
+                    fields.innerHTML = `
+                        <div class="form-group">
+                            <label>Message Text</label>
+                            <textarea id="batchTextMessage" placeholder="Your message here..." required></textarea>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'template':
+                    fields.innerHTML = `
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 5px;">
+                            <small>Will send "Hello World" template to all recipients</small>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'images':
+                    fields.innerHTML = `
+                        <div class="form-group">
+                            <label>Image URLs (one per line)</label>
+                            <textarea id="batchImages" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" rows="3"></textarea>
+                        </div>
+                    `;
+                    break;
+            }
+        });
+
+        // Initialize batch fields
+        document.getElementById('batchType').dispatchEvent(new Event('change'));
 
         // Send Message
         document.getElementById('messageForm').addEventListener('submit', async (e) => {
